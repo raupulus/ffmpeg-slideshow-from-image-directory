@@ -1,0 +1,52 @@
+# Editor
+.idea
+.vscode
+
+## Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+*.icloud
+
+## Zsh
+*.zwc
+*.zwc.old
+*zcompdump*
+.zsh_history
+.zsh_sessions
+.zcalc_history
+._zinit
+.zinit_lstupd
+zsdoc/data
+.directory_history
+.venv
+
+## General
+*.log
+*.swp
+*.tmp
+*.temp
+*.bak
+*.cache
+/out
+/output
