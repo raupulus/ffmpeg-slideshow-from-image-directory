@@ -50,3 +50,4 @@ zsdoc/data
 *.cache
 /out
 /output
+/info.txt
