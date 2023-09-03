@@ -1,18 +1,50 @@
 #!/bin/bash
 
-infoFile=$(pwd)/info.txt
+## Directorio del script
+scriptPath=$(dirname $(realpath $0))
+
+## Importo funciones auxiliares
+source $scriptPath/functions.sh
+
+## Directorio de música (Opcional, crea el directorio "music" y añade pistas mp3/wav/ogg si quieres música)
+musicFile=$(searchMusic $scriptPath/music)
+
+if [[ ! -d $scriptPath/tmp ]]; then
+    mkdir -p $scriptPath/tmp
+fi
+
+infoFile=$scriptPath/tmp/info.txt
 echo "" > $infoFile
 
+## Intervalo entre imágenes en segundos
 interval=6
+
+## Resolución del vídeo
 resolution=4096x2304
-workPath=$(pwd)/example
-outPath=$(pwd)/out
 
+## Ruta de las imágenes
+workPath=$scriptPath/example
 
+## Ruta del vídeo de salida
+outPath=""
+
+## Nombre del vídeo de salida
+outputName="out"
+
+## Indica si sobrescribir el archivo de salida si existiera
 overwrite=0
 
+## Almaceno si está instalada la herramienta ffmpeg
+existFfmpeg=$(which ffmpeg > /dev/null; echo $?)
+
+## Compruebo si está instalada la herramienta ffmpeg
+if [[ $existFfmpeg -eq 1 ]]; then
+    echo "Ffmpeg not found, install it and try again"
+    exit 1
+fi
+
 ## Parámetros de entrada:
-## -i <interval> -r <resolution> -p <path> -o <outPath> -y <overwrite> -h <help>
+## -i <interval> -r <resolution> -p <path> -o <outPath> -n <name> -y <overwrite> -h <help>
 
 for param in $*; do
     order=$(echo $param | cut -d"=" -f1)
@@ -25,18 +57,25 @@ for param in $*; do
         fi
 
         interval=$value
+    elif [[ $order = "-n" ]]; then
+        if [[ -z $value ]]; then
+            echo "Error: Nombre incorrecto"
+            exit 1
+        fi
+
+        outputName=$value
     elif [[ $order = "-r" ]]; then
         resolution=$value
     elif [[ $order = "-p" ]]; then
         if [[ ! -d $value ]]; then
-            echo "Error: Path not found ($value)"
+            echo "Error: Images Path not found ($value)"
             exit 1
         fi
 
         workPath=$value
     elif [[ $order = "-o" ]]; then
         if [[ ! -d $value ]]; then
-            echo "Error: Path not found"
+            echo "Error: Output Path not found ($value)"
             exit 1
         fi
 
@@ -44,36 +83,26 @@ for param in $*; do
     elif [[ $order = "-y" ]]; then
         overwrite=1
     elif [[ $order = "-h" ]]; then
-        echo ""
-        echo ""
-        echo "Usage: ./main.sh [options]"
-        echo ""
-        echo "Options:"
-        echo "  -i=<interval>       Interval between images in seconds"
-        echo "  -r=<resolution>     Resolution of the output video (Default 4096x2304)"
-        echo "  -p=<path>           Path of the images (Default current path)"
-        echo "  -o=<outPath>        Path of the output video (Default current path + /out/out.mp4)"
-        echo "  -y                  Overwrite output video if exists"
-        echo "  -h                  Show this help"
-        echo ""
-        exit 0
+        printMenuHelp
     fi
 done
 
-width=$(echo $resolution | cut -d"x" -f1)
-height=$(echo $resolution | cut -d"x" -f2)
-
-existFfmpeg=$(which ffmpeg > /dev/null; echo $?)
-
-## Compruebo si está instalada la herramienta ffmpeg
-if [[ $existFfmpeg -eq 1 ]]; then
-    echo "Ffmpeg not found, install it and try again"
-    exit 1
+if [[ $* = "" ]]; then
+    printMenuHelp
 fi
 
+## Ruta del vídeo de salida, si no se especifica se crea en el directorio actual de las imágenes
+if [[ -z $outPath ]]; then
+    outPath=$workPath/out
+fi
+
+## Compruebo si existe el directorio de salida, si no existe lo creo
 if [[ ! -d $outPath ]]; then
     mkdir -p $outPath
 fi
+
+width=$(echo $resolution | cut -d"x" -f1)
+height=$(echo $resolution | cut -d"x" -f2)
 
 titleFile=$(ls $workPath | grep -i "title.png")
 
@@ -84,10 +113,21 @@ fi
 #images=$(ls $workPath | grep -e "\.jpg" -e "\.png" | grep -v -i "title\.[png|jpg]")
 imagesFullPath=$(ls $workPath | grep -e "\.jpg" -e "\.png" | grep -v -i "title\.[png|jpg]" | sed "s:^:$workPath/:g")
 
-
+## Almaceno todas las imágenes preparadas para el comando ffmpeg
 allImages=""
+
+## Añado la música si existe
+#if [[ ! -z $musicFile]] && [[ -f $musicFile ]]; then
+#    allImages+="-i $musicFile"
+#fi
+
+## Contador de imágenes totales
 counter=0
+
+## Transiciones entre imágenes (fade in/out)
 transitions=""
+
+## Concatenación de las transiciones
 concat=""
 
 # Preparamos el título si existiera (Es Opcional)
@@ -103,7 +143,7 @@ if [[ ! -z $titleFile ]]; then
     counter=1
 fi
 
-# Cantidad de imágenes a procesar
+# Cantidad de imágenes a procesar (Sin contar el título)
 nImagesFullPath=$(echo $imagesFullPath | wc -w)
 
 for image in $imagesFullPath; do
@@ -130,15 +170,29 @@ done
 concat+="concat=n=$counter:v=1:a=0,format=yuv420p[v]"
 
 echo "Directorio de entrada: $workPath"
-echo "Directorio de Salida: $outPath/out.mp4"
+echo "Directorio de Salida: $outPath/${outputName}.mp4"
 
 sleep 1
 
-if [[ $overwrite -eq 1 ]] && [[ -f $outPath/out.mp4 ]]; then
-    rm -f $outPath/out.mp4
+## Compruebo si existe el archivo de salida, si existe lo borro
+if [[ $overwrite -eq 1 ]] && [[ -f $outPath/${outputName}.mp4 ]]; then
+    rm -f $outPath/${outputName}.mp4
 fi
 
-ffmpeg $allImages -filter_complex "$transitions$concat" -map "[v]" -shortest $outPath/out.mp4
+ffmpeg $allImages -filter_complex "$transitions$concat" -map "[v]" -shortest $outPath/${outputName}.mp4
 
 ## El parámetro -map $counter:a es para que no de error al no encontrar audio
 #ffmpeg -r $fps $allImages -filter_complex "$transitions$concat" -map "[v]" -map $counter:a -shortest $outPath/out.mp4
+
+
+## Añado metadata al vídeo
+
+
+## TODO: Probar música
+## TODO: Probar con imágenes de distinto tamaño
+## TODO: Comprobar si la música tiene un archivo de metadatos para añadirlo en el directorio de salida
+## TODO: Añadir nombre del directorio de entrada al título del vídeo si no se especifica título
+## TODO: Añadir al archivo de metadatos el nombre del directorio de entrada
+## TODO: Crear archivo en blanco dentro del directorio de imágenes para indicar que se ha procesador ".processed"
+## TODO: Crear archivo de metadatos en el directorio de salida con el nombre del vídeo
+## TODO: Crear el vídeo en formato x265
