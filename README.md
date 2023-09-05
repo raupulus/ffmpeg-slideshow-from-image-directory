@@ -21,3 +21,14 @@ Para tener música, crea un directorio en la raíz del proyecto llamado `music` 
 Los formatos admitidos son **mp3** **wav** y **ogg**.
 
 La música será seleccionada de forma aleatoria para cada vídeo.
+
+## Uso
+
+```bash
+imageToSlide -p <directorio de imágenes> -o <directorio de salida> -n <nombre de salida>
+```
+
+## Errores conocidos o cosas aún no implementadas
+
+- Los archivos de música no pueden tener espacios en el nombre ni carácteres extraños.
+- Los archivos de imágenes no pueden tener espacios en el nombre ni carácteres extraños.

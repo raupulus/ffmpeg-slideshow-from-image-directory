@@ -30,7 +30,7 @@ function searchMusic() {
 
 ##
 ## Imprime la ayuda del script.
-## -i <interval> -r <resolution> -p <path> -o <outPath> -y <overwrite> -h <help>
+## -i <interval> -r <resolution> -p <path> -o <outPath> -y <overwrite> -f <fps> -h <help>
 ##
 function printMenuHelp() {
     echo ""
@@ -43,6 +43,7 @@ function printMenuHelp() {
     echo "  -p=<path>           Path of the images (Default current path)"
     echo "  -o=<outPath>        Path of the output video (Default current path + /out/out.mp4)"
     echo "  -y                  Overwrite output video if exists"
+    echo "  -f                  Frames per second (Default 60)"
     echo "  -h                  Show this help"
     echo ""
     exit 0
