@@ -30,7 +30,7 @@ function searchMusic() {
 
 ##
 ## Imprime la ayuda del script.
-## -i <interval> -r <resolution> -p <path> -o <outPath> -y <overwrite> -f <fps> -h <help>
+## -i <interval> -r=<resolution> -p=<path> -o=<outPath> -y=<overwrite> -f=<fps> -c=<codec> -q=<quality> -h <help>
 ##
 function printMenuHelp() {
     echo ""
@@ -42,8 +42,10 @@ function printMenuHelp() {
     echo "  -r=<resolution>     Resolution of the output video (Default 4096x2304)"
     echo "  -p=<path>           Path of the images (Default current path)"
     echo "  -o=<outPath>        Path of the output video (Default current path + /out/out.mp4)"
+    echo "  -f=<fps>            Frames per second (Default 60)"
+    echo "  -c=<codec>          Codec (Default libx264)"
+    echo "  -q=<quality>        Calidad para el codec"
     echo "  -y                  Overwrite output video if exists"
-    echo "  -f                  Frames per second (Default 60)"
     echo "  -h                  Show this help"
     echo ""
     exit 0

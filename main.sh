@@ -22,6 +22,12 @@ interval=6
 ## Resolución del vídeo
 resolution=3840x2160
 
+## Codec
+codec="libx264" # libx265, hevc_videotoolbox, h264_videotoolbox
+
+## Calidad
+quality=31
+
 ## Ruta de las imágenes
 workPath=$scriptPath/example
 
@@ -33,6 +39,9 @@ outputName="out"
 
 ## Frames por segundo
 fps=25
+
+## Parámetros de denoise (Suavizar vídeo)
+#denoiseParameters="nlmeans=h=6:range=3:temporal=1"
 
 ## Indica si sobrescribir el archivo de salida si existiera
 overwrite=0
@@ -69,6 +78,8 @@ for param in $*; do
         outputName=$value
     elif [[ $order = "-r" ]]; then
         resolution=$value
+    elif [[ $order = "-c" ]]; then
+        codec=$value
     elif [[ $order = "-p" ]]; then
         if [[ ! -d $value ]]; then
             echo "Error: Images Path not found ($value)"
@@ -144,21 +155,19 @@ if [[ ! -z $titleFile ]]; then
     echo "file $workPath/$titleFile" >> $infoFile
     echo "duration 2" >> $infoFile
 
-    allImages="-loop 1 -t 2 -i $workPath/$titleFile"
+    allImages="-loop 1 -t 2 -i ${workPath}/${titleFile}"
 
     counter=1
 fi
 
 # Cantidad de imágenes a procesar (Sin contar el título)
-nImagesFullPath=$(echo $imagesFullPath | wc -w)
+nImagesFullPath=$(echo ${imagesFullPath} | wc -w)
 
 ## Duración de las transiciones
 transitionDuration=0.4
 durationWithoutTransitions=$(echo "$interval - $transitionDuration" | bc)
 
 for image in $imagesFullPath; do
-
-
     if [[ $counter -eq 0 ]]; then
         transitions+="[0:v]scale=$width:$height:force_original_aspect_ratio=decrease,pad=$width:$height:(ow-iw)/2:(oh-ih)/2,setsar=1,fade=t=out:st=${durationWithoutTransitions}:d=${transitionDuration}[v0];"
         concat="[v0]"
@@ -170,12 +179,12 @@ for image in $imagesFullPath; do
         concat+="[v$counter]"
     fi
 
-    echo "file $image" >> $infoFile
-    echo "duration $interval" >> $infoFile
+    echo "file ${image}" >> $infoFile
+    echo "duration ${interval}" >> $infoFile
 
     counter=$((counter+1))
 
-    allImages+=" -loop 1 -t $interval -i $image"
+    allImages+=" -loop 1 -t $interval -i ${image}"
 done
 
 ## Añado la música si existe
@@ -184,12 +193,6 @@ if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
 fi
 
 concat+="concat=n=$counter:v=1:a=0,format=yuv420p[v]"
-
-echo "Directorio de entrada: $workPath"
-echo "Directorio de Salida: $outPath/${outputName}.mp4"
-echo "Archivo de música: $musicFile"
-
-sleep 1
 
 ## Compruebo si existe el archivo de salida, si existe lo borro
 if [[ $overwrite -eq 1 ]] && [[ -f "${outPath}/${outputName}.mp4" ]]; then
@@ -203,30 +206,38 @@ if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
     totalLength=$(echo "$totalLength + 2" | bc)
 fi
 
-echo "ffmpeg $allImages -filter_complex \"$transitions$concat\" -map \"[v]\" -shortest $outPath/${outputName}.mp4"
-#exit 0
+## Creo el vídeo
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    ffmpeg $allImages -filter_complex "$transitions$concat" -map "[v]" -map ${counter}:a -r $fps -t $totalLength $outPath/${outputName}.mp4
+    ffmpeg ${allImages} -c:v $codec -crf $quality -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${outPath}/${outputName}.mp4"
 else
-    ffmpeg $allImages -filter_complex "$transitions$concat" -map "[v]" -shortest -r $fps "${outPath}/${outputName}.mp4"
+    ffmpeg ${allImages} -c:v $codec -crf $quality -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${outPath}/${outputName}.mp4"
 fi
 
-#ffmpeg $allImages -filter_complex "$transitions$concat" -map "[v]" -shortest $outPath/${outputName}.mp4
+videoCreated=$?
+
+if [[ $videoCreated -eq 0 ]]; then
+    echo ""
+    echo "Video created successfully"
+    echo ""
+
+    ## Añado metadata al vídeo
 
 
-## El parámetro -map $counter:a es para que no de error al no encontrar audio
-#ffmpeg -r $fps $allImages -filter_complex "$transitions$concat" -map "[v]" -map $counter:a -shortest $outPath/out.mp4
+    ## Copio archivo de metadatos al directorio de salida del vídeo
 
 
-## Añado metadata al vídeo
+    ## Borro el archivo de metadatos temporal
 
 
-## TODO: Probar música
-## TODO: Comprobar si la música tiene un archivo de metadatos para añadirlo en el directorio de salida
-## TODO: Añadir nombre del directorio de entrada al título del vídeo si no se especifica título
-## TODO: Añadir al archivo de metadatos el nombre del directorio de entrada
-## TODO: Crear archivo en blanco dentro del directorio de imágenes para indicar que se ha procesador ".processed"
-## TODO: Crear archivo de metadatos en el directorio de salida con el nombre del vídeo
-## TODO: Crear el vídeo en formato x265
+
+else
+    echo ""
+    echo "Error creating video"
+    echo ""
+    exit 1
+fi
+
+
+
 
 #musicInfo=$(split -l 1 $infoFile)
