@@ -68,6 +68,16 @@ imageToSlide -p=example -n=nombre-final -f=30 -y -c=hevc_videotoolbox
 imageToSlide -p=example -n=nombre-final -f=30 -y -c=h264_videotoolbox
 ```
 
+## Metadatos de salida
+
+Estos metadatos se añaden en un archivo llamado igual que el vídeo pero con extensión `.txt`
+
+Si en el directorio de las imágenes hay un archivo llamado `info.txt` o `info.md` se añadirá al archivo de metadatos de salida.
+
+Si en el directorio para la música (music) hay un archivo llamado con el mismo nombre que la canción pero con extensión `.txt` se añadirá al archivo de metadatos de salida. Esto se hace para poder añadir información sobre la música como el autor o el título pero sobre todo para reconocer la autoría al subir el vídeo a cualquier plataforma.
+
+También se añadirán al final de este archivo todas las imágenes utilizadas, esto es por que al usar Stable Diffusion las imágenes pueden llevar en el nombre tanto el número como información de las palabras clave para generarla y así poder buscarlas en el directorio de imágenes o usarlo para generar otras en el futuro como para cubrir información si se sube el vídeo a una plataforma.
+
 ## TODO
 
 [ ] Si la música se queda corta de duración, repetirla hasta completar el vídeo

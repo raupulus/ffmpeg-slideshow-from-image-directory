@@ -8,6 +8,8 @@ source $scriptPath/functions.sh
 
 ## Directorio de música (Opcional, crea el directorio "music" y añade pistas mp3/wav/ogg si quieres música)
 musicFile=$(searchMusic $scriptPath/music)
+musicFileName=$(basename $musicFile)
+musicFileInfo=$scriptPath/music/$(echo $musicFileName | sed "s:\.: :g" | awk '{print $1}').txt
 
 if [[ ! -d $scriptPath/tmp ]]; then
     mkdir -p $scriptPath/tmp
@@ -199,6 +201,11 @@ if [[ $overwrite -eq 1 ]] && [[ -f "${outPath}/${outputName}.mp4" ]]; then
     rm -f "${outPath}/${outputName}.mp4"
 fi
 
+## Compruebo si existe el archivo de metadatos para la salida, si existe lo borro
+if [[ $overwrite -eq 1 ]] && [[ -f "${outPath}/${outputName}.txt" ]]; then
+    rm -f "${outPath}/${outputName}.txt"
+fi
+
 ## Calculo la duración total del vídeo
 totalLength=$(echo "$interval * $nImagesFullPath" | bc)
 
@@ -220,24 +227,54 @@ if [[ $videoCreated -eq 0 ]]; then
     echo "Video created successfully"
     echo ""
 
-    ## Añado metadata al vídeo
+    outputFileInfo="${outPath}/${outputName}.txt"
+
+    echo "Información del vídeo:" > $outputFileInfo
+    echo "" >> $outputFileInfo
+    echo "Resolución: $resolution" >> $outputFileInfo
+    echo "Duración: ${totalLength}s" >> $outputFileInfo
+    echo "FPS: $fps" >> $outputFileInfo
+    echo "Codec: $codec" >> $outputFileInfo
+    echo "Calidad: $quality" >> $outputFileInfo
+    echo "" >> $outputFileInfo
+
+    echo "Información de las imágenes:" >> $outputFileInfo
+    echo "" >> $outputFileInfo
+    echo "Intervalo: ${interval}s" >> $outputFileInfo
+    echo "Nombre del directorio de las imágenes: $workPath" >> $outputFileInfo
+    echo "Número de imágenes: $nImagesFullPath" >> $outputFileInfo
+    echo "" >> $outputFileInfo
 
 
     ## Copio archivo de metadatos al directorio de salida del vídeo
+    if [[ -f $workPath/info.txt ]]; then
+        echo "" >> $outputFileInfo
+        echo "Información del directorio de imágenes:" >> $outputFileInfo
+        cat $workPath/info.txt >> $outputFileInfo
+    elif [[ -f $workPath/info.md ]]; then
+        echo "" >> $outputFileInfo
+        echo "Información del directorio de imágenes:" >> $outputFileInfo
+        cat $workPath/info.md >> $outputFileInfo
+    fi
 
+    ## Añado metadata de la música
+    if [[ -z $musicFileInfo ]] && [[ -f $musicFileInfo ]]; then
+        echo "" > $musicFileInfo
+        echo "" > $musicFileInfo
+        echo "Información de la música:" >> $musicFileInfo
+        echo "" >> $musicFileInfo
+        cat $musicFileInfo >> $outputFileInfo
+    fi
 
-    ## Borro el archivo de metadatos temporal
-
-
-
+    ## Metadatos de todas las imágenes procesadas
+    if [[ -f $infoFile ]]; then
+        echo "" >> $outputFileInfo
+        echo "Información de las imágenes:" >> $outputFileInfo
+        cat $infoFile >> $outputFileInfo
+    fi
 else
     echo ""
     echo "Error creating video"
     echo ""
     exit 1
 fi
-
-
-
-
-#musicInfo=$(split -l 1 $infoFile)

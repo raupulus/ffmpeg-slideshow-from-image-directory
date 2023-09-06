@@ -1,0 +1,17 @@
+# Info
+
+## Frase de búsqueda
+
+Orcas nadando
+
+---
+
+orcas swimming
+
+## Negativo, para excluir
+
+monocroma, anime, medio cuerpo, borroso, ilustración, dibujo, desfigurado, feo,desaturado, mala anatomía, baja resolución, desenfocado, baja-res, poorly drawn face, poorly drawn hands, dedos extras, mutado, manos deformadas, manos malformadas, blur, desenfocado, out of focus, long neck, disgusting, surreal
+
+--- 
+
+monochrome, anime, half body, blurry, illustration, drawing, disfigured, ugly, desaturated, bad anatomy, low resolution, defocused, low-res, poorly drawn face, poorly drawn hands, extra fingers, mutated, deformed hands, hands malformed, blur, defocused, out of focus, long neck, disgusting, surreal
