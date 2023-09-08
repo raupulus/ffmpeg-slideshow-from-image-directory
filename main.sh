@@ -1,4 +1,11 @@
 #!/bin/bash
+saveIFS=$IFS
+
+## Nombre aleatorio de la carpeta temporal
+tmp=$(mktemp -d)
+
+mkdir -p "${tmp}/music"
+mkdir -p "${tmp}/images"
 
 ## Directorio del script
 scriptPath=$(dirname $(realpath $0))
@@ -11,11 +18,7 @@ musicFile=$(searchMusic $scriptPath/music)
 musicFileName=$(basename $musicFile)
 musicFileInfo=$scriptPath/music/$(echo $musicFileName | sed "s:\.: :g" | awk '{print $1}').txt
 
-if [[ ! -d $scriptPath/tmp ]]; then
-    mkdir -p $scriptPath/tmp
-fi
-
-infoFile=$scriptPath/tmp/info.txt
+infoFile=${tmp}/info.txt
 echo "" > $infoFile
 
 ## Intervalo entre imágenes en segundos
@@ -138,7 +141,7 @@ fi
 imagesFullPath=$(ls $workPath | grep -e "\.jpg" -e "\.png" | grep -v -i "title\.[png|jpg]" | sed "s:^:$workPath/:g")
 
 ## Almaceno todas las imágenes preparadas para el comando ffmpeg
-allImages=""
+allInputs=""
 
 ## Contador de imágenes totales
 counter=0
@@ -157,7 +160,15 @@ if [[ ! -z $titleFile ]]; then
     echo "file $workPath/$titleFile" >> $infoFile
     echo "duration 2" >> $infoFile
 
-    allImages="-loop 1 -t 2 -i ${workPath}/${titleFile}"
+    allInputs="-loop 1 -t 2 -i ${workPath}/${titleFile}"
+
+    img="${workPath}/${titleFile}"
+
+    cp "${img}" "${tmp}/images/${titleFile}"
+
+    tmpTitleFile="${tmp}/images/${titleFile}"
+
+    allInputs=" -loop 1 -t 2 -i ${tmpTitleFile}"
 
     counter=1
 fi
@@ -186,12 +197,12 @@ for image in $imagesFullPath; do
 
     counter=$((counter+1))
 
-    allImages+=" -loop 1 -t $interval -i ${image}"
+    allInputs+=" -loop 1 -t $interval -i ${image}"
 done
 
 ## Añado la música si existe
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    allImages+=" -i ${musicFile}"
+    allInputs+=" -i ${musicFile}"
 fi
 
 concat+="concat=n=$counter:v=1:a=0,format=yuv420p[v]"
@@ -215,9 +226,9 @@ fi
 
 ## Creo el vídeo
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    ffmpeg ${allImages} -c:v $codec -crf $quality -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${outPath}/${outputName}.mp4"
+    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${outPath}/${outputName}.mp4"
 else
-    ffmpeg ${allImages} -c:v $codec -crf $quality -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${outPath}/${outputName}.mp4"
+    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${outPath}/${outputName}.mp4"
 fi
 
 videoCreated=$?
@@ -272,9 +283,21 @@ if [[ $videoCreated -eq 0 ]]; then
         echo "Información de las imágenes:" >> $outputFileInfo
         cat $infoFile >> $outputFileInfo
     fi
+
+    ## Añado marca al directorio de entrada para indicar que se ha procesado (.processed)
+    if [[ ! -f $workPath/.processed ]]; then
+        touch $workPath/.processed
+    fi
 else
     echo ""
     echo "Error creating video"
     echo ""
     exit 1
 fi
+
+
+## Borro el directorio temporal
+echo "Borrando directorio temporal..."
+echo "${tmp}"
+ls "${tmp}"
+#rm -rf "${tmp}"
