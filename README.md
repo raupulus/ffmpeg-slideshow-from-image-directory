@@ -81,20 +81,4 @@ También se añadirán al final de este archivo todas las imágenes utilizadas, 
 ## TODO
 
 [ ] Si la música se queda corta de duración, repetirla hasta completar el vídeo
-
-[ ] Comprobar si la música tiene un archivo de metadatos para añadirlo en el directorio de salida
-
-[ ] Añadir nombre del directorio de entrada al título del vídeo si no se especifica título
-
-[ ] Añadir al archivo de metadatos el nombre del directorio de entrada
-
-[ ] Crear archivo en blanco dentro del directorio de imágenes para indicar que se ha procesador ".processed"
-
-[ ] Crear archivo de metadatos en el directorio de salida con el nombre del vídeo
-
 [ ] Mirar si es viable suavizar vídeo con denoise nlmeans
-
-## Errores conocidos o cosas aún no implementadas
-
-- Los archivos de música no pueden tener espacios en el nombre ni carácteres extraños.
-- Los archivos de imágenes no pueden tener espacios en el nombre ni carácteres extraños.

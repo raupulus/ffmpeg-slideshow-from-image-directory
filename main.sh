@@ -198,6 +198,9 @@ nimagesPath=$(echo "${#imagesPath[@]}" | bc)
 transitionDuration=0.4
 durationWithoutTransitions=$(echo "$interval - $transitionDuration" | bc)
 
+IFS="
+"
+
 for image in ${imagesPath[@]}; do
     if [[ $counter -eq 0 ]]; then
         transitions+="[0:v]scale=$width:$height:force_original_aspect_ratio=decrease,pad=$width:$height:(ow-iw)/2:(oh-ih)/2,setsar=1,fade=t=out:st=${durationWithoutTransitions}:d=${transitionDuration}[v0];"
@@ -237,6 +240,8 @@ for image in ${imagesPath[@]}; do
     counter=$((counter+1))
 
 done
+
+IFS="$save_ifs"
 
 ## Añado la música si existe
 if [[ ! -z "${musicFile}" ]] && [[ -f "${musicFile}" ]]; then
