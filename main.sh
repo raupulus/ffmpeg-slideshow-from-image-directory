@@ -1,5 +1,5 @@
 #!/bin/bash
-saveIFS=$IFS
+save_ifs=$IFS
 
 ## Nombre aleatorio de la carpeta temporal
 tmp=$(mktemp -d)
@@ -11,30 +11,30 @@ mkdir -p "${tmp}/images"
 scriptPath=$(dirname $(realpath $0))
 
 ## Importo funciones auxiliares
-source $scriptPath/functions.sh
+source "${scriptPath}/functions.sh"
 
 ## Directorio de música (Opcional, crea el directorio "music" y añade pistas mp3/wav/ogg si quieres música)
-musicFile=$(searchMusic $scriptPath/music)
+musicFile=$(searchMusic "${scriptPath}/music")
 musicFileName=$(basename $musicFile)
-musicFileInfo=$scriptPath/music/$(echo $musicFileName | sed "s:\.: :g" | awk '{print $1}').txt
+musicFileInfo=${scriptPath}/music/$(echo "${musicFileName}" | sed "s:\.: :g" | awk '{print $1}').txt
 
-infoFile=${tmp}/info.txt
-echo "" > $infoFile
+infoFile="${tmp}/info.txt"
+echo "" > "${infoFile}"
 
 ## Intervalo entre imágenes en segundos
 interval=6
 
 ## Resolución del vídeo
-resolution=3840x2160
+resolution="3840x2160" # 4k por defecto
 
 ## Codec
 codec="libx264" # libx265, hevc_videotoolbox, h264_videotoolbox
 
-## Calidad
+## Calidad (Varía según el codec)
 quality=31
 
 ## Ruta de las imágenes
-workPath=$scriptPath/example
+workPath="${scriptPath}/example"
 
 ## Ruta del vídeo de salida
 outPath=""
@@ -63,9 +63,9 @@ fi
 ## Parámetros de entrada:
 ## -i <interval> -r <resolution> -p <path> -o <outPath> -n <name> -y <overwrite> -h <help>
 
-for param in $*; do
-    order=$(echo $param | cut -d"=" -f1)
-    value=$(echo $param | cut -d"=" -f2)
+for param in "$@"; do
+    order=$(echo ${param} | cut -d"=" -f1)
+    value=$(echo "${param}" | cut -d"=" -f2)
 
     if [[ $order = "-i" ]]; then
         if [[ $value -lt 1 ]]; then
@@ -73,32 +73,27 @@ for param in $*; do
             exit 1
         fi
 
-        interval=$value
+        interval="${value}"
     elif [[ $order = "-n" ]]; then
         if [[ -z $value ]]; then
             echo "Error: Nombre incorrecto"
             exit 1
         fi
 
-        outputName=$value
+        outputName="${value}"
     elif [[ $order = "-r" ]]; then
-        resolution=$value
+        resolution="${value}"
     elif [[ $order = "-c" ]]; then
-        codec=$value
+        codec="${value}"
     elif [[ $order = "-p" ]]; then
-        if [[ ! -d $value ]]; then
+        if [[ ! -d "${value}" ]]; then
             echo "Error: Images Path not found ($value)"
             exit 1
         fi
 
-        workPath=$value
+        workPath="${value}"
     elif [[ $order = "-o" ]]; then
-        if [[ ! -d $value ]]; then
-            echo "Error: Output Path not found ($value)"
-            exit 1
-        fi
-
-        outPath=$value
+        outPath="${value}"
     elif [[ $order = "-y" ]]; then
         overwrite=1
 
@@ -118,10 +113,20 @@ if [[ $* = "" ]]; then
     printMenuHelp
 fi
 
-## Ruta del vídeo de salida, si no se especifica se crea en el directorio actual de las imágenes
-if [[ -z $outPath ]]; then
-    outPath=$workPath/out
+workPathName=$(basename "${workPath}")
+
+if [[ -z "${outputName}" ]] || [[ "${outputName}" = 'out' ]]; then
+    outputName="${workPathName}"
 fi
+
+## Ruta del vídeo de salida, si no se especifica se crea en el directorio actual de las imágenes
+if [[ -z "${outPath}" ]]; then
+    outPath="${workPath}/out"
+fi
+
+## Limpio espacio final e inicial
+outPath=$(echo "${outPath}" | sed "s:^ *::g" | sed "s: *$::g")
+outputName=$(echo "${outputName}" | sed "s:^ *::g" | sed "s: *$::g")
 
 ## Compruebo si existe el directorio de salida, si no existe lo creo
 if [[ ! -d $outPath ]]; then
@@ -131,14 +136,26 @@ fi
 width=$(echo $resolution | cut -d"x" -f1)
 height=$(echo $resolution | cut -d"x" -f2)
 
-titleFile=$(ls $workPath | grep -i "title.png")
+titleFile=$(ls "${workPath}" | grep -i "title.png")
 
 if [[ -z $titleFile ]]; then
-    titleFile=$(ls $workPath | grep -i "title.jpg")
+    titleFile=$(ls "${workPath}" | grep -i "title.jpg")
 fi
 
 ## Almaceno todas las imágenes del directorio de trabajo con la ruta completa
-imagesFullPath=$(ls $workPath | grep -e "\.jpg" -e "\.png" | grep -v -i "title\.[png|jpg]" | sed "s:^:$workPath/:g")
+IFS="
+"
+readWork=$(ls "${workPath}" | grep -e "\.jpg" -e "\.png" | grep -v -i "title\.[png|jpg]")
+
+## Almaceno todas las imágenes del directorio de trabajo con la ruta completa
+imagesPath=()
+#imagesPath=$(ls $workPath | grep -e "\.jpg" -e "\.png" | grep -v -i "title\.[png|jpg]" | sed "s:^:$workPath/:g")
+
+for img in ${readWork[@]}; do
+    imagesPath+=("${img}")
+done
+
+IFS="$save_ifs"
 
 ## Almaceno todas las imágenes preparadas para el comando ffmpeg
 allInputs=""
@@ -173,18 +190,19 @@ if [[ ! -z $titleFile ]]; then
     counter=1
 fi
 
+
 # Cantidad de imágenes a procesar (Sin contar el título)
-nImagesFullPath=$(echo ${imagesFullPath} | wc -w)
+nimagesPath=$(echo "${#imagesPath[@]}" | bc)
 
 ## Duración de las transiciones
 transitionDuration=0.4
 durationWithoutTransitions=$(echo "$interval - $transitionDuration" | bc)
 
-for image in $imagesFullPath; do
+for image in ${imagesPath[@]}; do
     if [[ $counter -eq 0 ]]; then
         transitions+="[0:v]scale=$width:$height:force_original_aspect_ratio=decrease,pad=$width:$height:(ow-iw)/2:(oh-ih)/2,setsar=1,fade=t=out:st=${durationWithoutTransitions}:d=${transitionDuration}[v0];"
         concat="[v0]"
-    elif [[ $counter -eq $nImagesFullPath ]]; then
+    elif [[ $counter -eq $nimagesPath ]]; then
         transitions+="[$counter:v]scale=$width:$height:force_original_aspect_ratio=decrease,pad=$width:$height:(ow-iw)/2:(oh-ih)/2,setsar=1,fade=t=in:st=0:d=${transitionDuration}[v$counter];"
         concat+="[v$counter]"
     else
@@ -195,7 +213,7 @@ for image in $imagesFullPath; do
     echo "file ${image}" >> $infoFile
     echo "duration ${interval}" >> $infoFile
 
-    img="${image}"
+    img="${workPath}/${image}"
 
     if [[ ! -f "${img}" ]]; then
         echo "Error: No se encontró la imagen $img"
@@ -238,7 +256,7 @@ if [[ $overwrite -eq 1 ]] && [[ -f "${outPath}/${outputName}.txt" ]]; then
 fi
 
 ## Calculo la duración total del vídeo
-totalLength=$(echo "$interval * $nImagesFullPath" | bc)
+totalLength=$(echo "$interval * $nimagesPath" | bc)
 
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
     totalLength=$(echo "$totalLength + 2" | bc)
@@ -246,19 +264,24 @@ fi
 
 ## Creo el vídeo
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${outPath}/${outputName}.mp4"
+    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
 else
-    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${outPath}/${outputName}.mp4"
+    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${tmp}/out.mp4"
 fi
 
 videoCreated=$?
 
+echo "Vídeo guardado en ${outPath}/${outputName}.mp4"
+
 if [[ $videoCreated -eq 0 ]]; then
+    ## Copio el vídeo al directorio de salida
+    mv "${tmp}/out.mp4" "${outPath}/${outputName}.mp4"
+
     echo ""
     echo "Video created successfully"
     echo ""
 
-    outputFileInfo="${outPath}/${outputName}.txt"
+    outputFileInfo="${tmp}.txt"
 
     echo "Información del vídeo:" > $outputFileInfo
     echo "" >> $outputFileInfo
@@ -273,12 +296,12 @@ if [[ $videoCreated -eq 0 ]]; then
     echo "" >> $outputFileInfo
     echo "Intervalo: ${interval}s" >> $outputFileInfo
     echo "Nombre del directorio de las imágenes: $workPath" >> $outputFileInfo
-    echo "Número de imágenes: $nImagesFullPath" >> $outputFileInfo
+    echo "Número de imágenes: $nimagesPath" >> $outputFileInfo
     echo "" >> $outputFileInfo
 
 
     ## Copio archivo de metadatos al directorio de salida del vídeo
-    if [[ -f $workPath/info.txt ]]; then
+    if [[ -f "${workPath}/info.txt" ]]; then
         echo "" >> $outputFileInfo
         echo "Información del directorio de imágenes:" >> $outputFileInfo
         cat $workPath/info.txt >> $outputFileInfo
@@ -301,23 +324,26 @@ if [[ $videoCreated -eq 0 ]]; then
     if [[ -f $infoFile ]]; then
         echo "" >> $outputFileInfo
         echo "Información de las imágenes:" >> $outputFileInfo
+
         cat $infoFile >> $outputFileInfo
     fi
 
     ## Añado marca al directorio de entrada para indicar que se ha procesado (.processed)
-    if [[ ! -f $workPath/.processed ]]; then
-        touch $workPath/.processed
+    if [[ ! -f "${workPath}/.processed" ]]; then
+        touch "${workPath}/.processed"
     fi
+
+    ## Copio el archivo de metadatos al directorio de salida
+    mv $outputFileInfo "${outPath}/${outputName}.txt"
 else
     echo ""
     echo "Error creating video"
     echo ""
-    exit 1
 fi
 
 
 ## Borro el directorio temporal
 echo "Borrando directorio temporal..."
 echo "${tmp}"
-ls "${tmp}"
-#rm -rf "${tmp}"
+
+rm -rf "${tmp}"
