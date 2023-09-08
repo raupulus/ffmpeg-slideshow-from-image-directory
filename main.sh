@@ -195,9 +195,29 @@ for image in $imagesFullPath; do
     echo "file ${image}" >> $infoFile
     echo "duration ${interval}" >> $infoFile
 
+    img="${image}"
+
+    if [[ ! -f "${img}" ]]; then
+        echo "Error: No se encontró la imagen $img"
+        exit 1
+    fi
+
+    extension=$(echo "${img}" | rev | cut -d"." -f1 | rev)
+
+    tmpImage="${tmp}/images/${counter}.${extension}"
+
+    cp "${img}" "${tmpImage}"
+
+    if [[ ! -f "${tmpImage}" ]]; then
+        echo "Error: No se pudo copiar la imagen $img"
+        exit 1
+    fi
+
+    ## Añado la imagen al array de imágenes
+    allInputs+=" -loop 1 -t ${interval} -i $tmpImage"
+
     counter=$((counter+1))
 
-    allInputs+=" -loop 1 -t $interval -i ${image}"
 done
 
 ## Añado la música si existe
