@@ -239,8 +239,14 @@ for image in ${imagesPath[@]}; do
 done
 
 ## Añado la música si existe
-if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    allInputs+=" -i ${musicFile}"
+if [[ ! -z "${musicFile}" ]] && [[ -f "${musicFile}" ]]; then
+    extensionMusic=$(echo "${musicFile}" | rev | cut -d"." -f1 | rev)
+
+    tmpMusic="${tmp}/music/0.${extensionMusic}"
+
+    cp "${musicFile}" "${tmpMusic}"
+
+    allInputs+=" -i ${tmpMusic}"
 fi
 
 concat+="concat=n=$counter:v=1:a=0,format=yuv420p[v]"
