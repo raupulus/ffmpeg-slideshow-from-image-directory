@@ -80,5 +80,4 @@ También se añadirán al final de este archivo todas las imágenes utilizadas, 
 
 ## TODO
 
-[ ] Si la música se queda corta de duración, repetirla hasta completar el vídeo
 [ ] Mirar si es viable suavizar vídeo con denoise nlmeans

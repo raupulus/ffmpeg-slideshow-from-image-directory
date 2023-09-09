@@ -251,7 +251,7 @@ if [[ ! -z "${musicFile}" ]] && [[ -f "${musicFile}" ]]; then
 
     cp "${musicFile}" "${tmpMusic}"
 
-    allInputs+=" -i ${tmpMusic}"
+    allInputs+=" -stream_loop -1 -i ${tmpMusic}"
 fi
 
 concat+="concat=n=$counter:v=1:a=0,format=yuv420p[v]"
@@ -275,16 +275,27 @@ fi
 
 ## Creo el vídeo
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+    if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]]; then
+        ffmpeg ${allInputs} -c:v $codec -x265-params "vbv-bufsize=6000:vbv-maxrate=24000:bitrate=6000:keyint=1:lossless=1" -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+    else
+        ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+    fi
+
+    #ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
 else
-    ffmpeg ${allInputs} -c:v $codec -crf $quality -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${tmp}/out.mp4"
+    if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]]; then
+        ffmpeg ${allInputs} -c:v $codec -x265-params "keyint=1:lossless=1" -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps -t $totalLength "${tmp}/out.mp4"
+    else
+        ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps -t $totalLength "${tmp}/out.mp4"
+    fi
+    #ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps "${tmp}/out.mp4"
 fi
 
 videoCreated=$?
 
-echo "Vídeo guardado en ${outPath}/${outputName}.mp4"
-
 if [[ $videoCreated -eq 0 ]]; then
+    echo "Vídeo guardado en ${outPath}/${outputName}.mp4"
+
     ## Copio el vídeo al directorio de salida
     mv "${tmp}/out.mp4" "${outPath}/${outputName}.mp4"
 
