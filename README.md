@@ -81,3 +81,28 @@ También se añadirán al final de este archivo todas las imágenes utilizadas, 
 ## TODO
 
 [ ] Mirar si es viable suavizar vídeo con denoise nlmeans
+
+## Procesado por lotes (Adicional Script)
+
+El script **batch.sh** permite procesar todos los directorios de imágenes que contiene como primer nivel y crear los vídeos en el directorio de salida.
+
+Este script recibe dos parámetros obligatorios en orden:
+
+- Directorio que contiene los directorios de imágenes.
+- Directorio de salida para todos los vídeos.
+
+```bash
+./batch.sh <directorio de imágenes> <directorio de salida>
+```
+
+Básicamente lo que hace es ejecutar el script principal por cada directorio de imágenes que encuentre en el directorio de imágenes.
+
+Esto es útil para procesar por lotes todos los vídeos que tengas en un directorio fácilmente.
+
+Se ignorarán los directorios que no contengan imágenes y los directorios que contengan el archivo oculto **.processed**.
+
+## Ejemplo de salida
+
+```bash
+./batch.sh '/Users/fryntiz/Movies/Slides/galleries' '/Users/fryntiz/Movies/Slides/output'
+```

@@ -357,15 +357,24 @@ if [[ $videoCreated -eq 0 ]]; then
 
     ## Copio el archivo de metadatos al directorio de salida
     mv $outputFileInfo "${outPath}/${outputName}.txt"
+
+    ## Borro el directorio temporal
+    echo "Borrando directorio temporal..."
+    echo "${tmp}"
+
+    rm -rf "${tmp}"
+
+    exit 0
 else
     echo ""
     echo "Error creating video"
     echo ""
+
+    ## Borro el directorio temporal
+    echo "Borrando directorio temporal..."
+    echo "${tmp}"
+
+    rm -rf "${tmp}"
+
+    exit 1
 fi
-
-
-## Borro el directorio temporal
-echo "Borrando directorio temporal..."
-echo "${tmp}"
-
-rm -rf "${tmp}"
