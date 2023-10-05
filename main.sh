@@ -276,7 +276,7 @@ fi
 ## Creo el vídeo
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
     if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]]; then
-        ffmpeg ${allInputs} -c:v $codec -x265-params "vbv-bufsize=6000:vbv-maxrate=24000:bitrate=6000:keyint=1:lossless=1" -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+        ffmpeg ${allInputs} -c:v $codec -preset slow -profile:v main -crf $quality -bf:v 3 -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
     else
         ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
     fi
@@ -325,27 +325,34 @@ if [[ $videoCreated -eq 0 ]]; then
     ## Copio archivo de metadatos al directorio de salida del vídeo
     if [[ -f "${workPath}/info.txt" ]]; then
         echo "" >> $outputFileInfo
-        echo "Información del directorio de imágenes:" >> $outputFileInfo
-        cat $workPath/info.txt >> $outputFileInfo
-    elif [[ -f $workPath/info.md ]]; then
         echo "" >> $outputFileInfo
         echo "Información del directorio de imágenes:" >> $outputFileInfo
-        cat $workPath/info.md >> $outputFileInfo
+        cat "${workPath}/info.txt" >> $outputFileInfo
+    elif [[ -f "${workPath}/info.md" ]]; then
+        echo "" >> $outputFileInfo
+        echo "" >> $outputFileInfo
+        echo "Información del directorio de imágenes:" >> $outputFileInfo
+        cat "${workPath}/info.md" >> $outputFileInfo
+    fi
+
+    ## Copio archivo de metadatos JSON al directorio de salida del vídeo
+    if [[ -f "${workPath}/info.json" ]]; then
+        cp "${workPath}/info.json" "${outPath}/${outputName}.json"
     fi
 
     ## Añado metadata de la música
-    if [[ -z $musicFileInfo ]] && [[ -f $musicFileInfo ]]; then
-        echo "" > $musicFileInfo
-        echo "" > $musicFileInfo
-        echo "Información de la música:" >> $musicFileInfo
-        echo "" >> $musicFileInfo
-        cat $musicFileInfo >> $outputFileInfo
+    if [[ ! -z "${musicFileInfo}" ]] && [[ -f "${musicFileInfo}" ]]; then
+        echo "" >> "${outputFileInfo}"
+        echo "Información de la música:" >> "${outputFileInfo}"
+        echo "" >> "${outputFileInfo}"
+        cat "${musicFileInfo}" >> "${outputFileInfo}"
     fi
 
     ## Metadatos de todas las imágenes procesadas
     if [[ -f $infoFile ]]; then
         echo "" >> $outputFileInfo
-        echo "Información de las imágenes:" >> $outputFileInfo
+        echo "" >> $outputFileInfo
+        echo "Imágenes Procesadas:" >> $outputFileInfo
 
         cat $infoFile >> $outputFileInfo
     fi

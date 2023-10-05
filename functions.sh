@@ -42,7 +42,7 @@ function printMenuHelp() {
     echo "  -r=<resolution>     Resolution of the output video (Default 4096x2304)"
     echo "  -p=<path>           Path of the input images (Default current path)"
     echo "  -o=<outPath>        Path of the output video (Default current path + /out/out.mp4)"
-    echo "  -n=<name>           Name of the output video (Default out.mp4)"
+    echo "  -n=<name>           Name of the output video (Default out, final name out.mp4)"
     echo "  -f=<fps>            Frames per second (Default 60)"
     echo "  -c=<codec>          Codec (Default libx264)"
     echo "  -q=<quality>        Calidad para el codec"

@@ -78,10 +78,6 @@ Si en el directorio para la música (music) hay un archivo llamado con el mismo 
 
 También se añadirán al final de este archivo todas las imágenes utilizadas, esto es por que al usar Stable Diffusion las imágenes pueden llevar en el nombre tanto el número como información de las palabras clave para generarla y así poder buscarlas en el directorio de imágenes o usarlo para generar otras en el futuro como para cubrir información si se sube el vídeo a una plataforma.
 
-## TODO
-
-[ ] Mirar si es viable suavizar vídeo con denoise nlmeans
-
 ## Procesado por lotes (Adicional Script)
 
 El script **batch.sh** permite procesar todos los directorios de imágenes que contiene como primer nivel y crear los vídeos en el directorio de salida.
@@ -106,3 +102,7 @@ Se ignorarán los directorios que no contengan imágenes y los directorios que c
 ```bash
 ./batch.sh '/Users/fryntiz/Movies/Slides/galleries' '/Users/fryntiz/Movies/Slides/output'
 ```
+
+## TODO
+
+- [ ] Mirar si es viable suavizar vídeo con denoise nlmeans

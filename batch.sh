@@ -66,7 +66,7 @@ for dir in $galleryDirs; do
     echo ""
 
     ## Genero el video
-    "${scriptPath}/main.sh" -i=8 -p="${dir}" -o="${outPath}" -n="${dirName}.mp4" -f=60 -c=hevc_videotoolbox -q=23 -y
+    "${scriptPath}/main.sh" -i=8 -p="${dir}" -o="${outPath}" -n="${dirName}" -f=60 -c=hevc_videotoolbox -q=20 -y
 
     if [[ $? -ne 0 ]]; then
         ((errors++))
