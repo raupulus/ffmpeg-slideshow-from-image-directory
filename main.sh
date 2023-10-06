@@ -305,22 +305,7 @@ if [[ $videoCreated -eq 0 ]]; then
 
     outputFileInfo="${tmp}.txt"
 
-    echo "Información del vídeo:" > $outputFileInfo
-    echo "" >> $outputFileInfo
-    echo "Resolución: $resolution" >> $outputFileInfo
-    echo "Duración: ${totalLength}s" >> $outputFileInfo
-    echo "FPS: $fps" >> $outputFileInfo
-    echo "Codec: $codec" >> $outputFileInfo
-    echo "Calidad: $quality" >> $outputFileInfo
-    echo "" >> $outputFileInfo
-
-    echo "Información de las imágenes:" >> $outputFileInfo
-    echo "" >> $outputFileInfo
-    echo "Intervalo: ${interval}s" >> $outputFileInfo
-    echo "Nombre del directorio de las imágenes: $workPath" >> $outputFileInfo
-    echo "Número de imágenes: $nimagesPath" >> $outputFileInfo
-    echo "" >> $outputFileInfo
-
+    touch $outputFileInfo
 
     ## Copio archivo de metadatos al directorio de salida del vídeo
     if [[ -f "${workPath}/info.txt" ]]; then
@@ -343,16 +328,30 @@ if [[ $videoCreated -eq 0 ]]; then
     ## Añado metadata de la música
     if [[ ! -z "${musicFileInfo}" ]] && [[ -f "${musicFileInfo}" ]]; then
         echo "" >> "${outputFileInfo}"
-        echo "Información de la música:" >> "${outputFileInfo}"
+        echo "Information about music:" >> "${outputFileInfo}"
         echo "" >> "${outputFileInfo}"
         cat "${musicFileInfo}" >> "${outputFileInfo}"
     fi
+
+    echo "" >> $outputFileInfo
+    echo "" >> $outputFileInfo
+    echo "Video information:" >> $outputFileInfo
+    echo "" >> $outputFileInfo
+    echo "Resolution: $resolution" >> $outputFileInfo
+    echo "Duration: ${totalLength}s" >> $outputFileInfo
+    echo "FPS: $fps" >> $outputFileInfo
+    echo "Codec: $codec" >> $outputFileInfo
+    echo "Quality: $quality" >> $outputFileInfo
+    echo "" >> $outputFileInfo
+    echo "Image Interval: ${interval}s" >> $outputFileInfo
+    echo "Number of images: ${nimagesPath}" >> $outputFileInfo
+    echo "" >> $outputFileInfo
 
     ## Metadatos de todas las imágenes procesadas
     if [[ -f $infoFile ]]; then
         echo "" >> $outputFileInfo
         echo "" >> $outputFileInfo
-        echo "Imágenes Procesadas:" >> $outputFileInfo
+        echo "Processed Images:" >> $outputFileInfo
 
         cat $infoFile >> $outputFileInfo
     fi

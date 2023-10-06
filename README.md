@@ -105,4 +105,7 @@ Se ignorarán los directorios que no contengan imágenes y los directorios que c
 
 ## TODO
 
+- [] Poner información externa primero
+- [] Metadatos en inglés
+-
 - [ ] Mirar si es viable suavizar vídeo con denoise nlmeans
