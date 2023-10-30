@@ -309,14 +309,8 @@ if [[ $videoCreated -eq 0 ]]; then
 
     ## Copio archivo de metadatos al directorio de salida del vídeo
     if [[ -f "${workPath}/info.txt" ]]; then
-        echo "" >> $outputFileInfo
-        echo "" >> $outputFileInfo
-        echo "Información del directorio de imágenes:" >> $outputFileInfo
         cat "${workPath}/info.txt" >> $outputFileInfo
     elif [[ -f "${workPath}/info.md" ]]; then
-        echo "" >> $outputFileInfo
-        echo "" >> $outputFileInfo
-        echo "Información del directorio de imágenes:" >> $outputFileInfo
         cat "${workPath}/info.md" >> $outputFileInfo
     fi
 
@@ -348,13 +342,13 @@ if [[ $videoCreated -eq 0 ]]; then
     echo "" >> $outputFileInfo
 
     ## Metadatos de todas las imágenes procesadas
-    if [[ -f $infoFile ]]; then
-        echo "" >> $outputFileInfo
-        echo "" >> $outputFileInfo
-        echo "Processed Images:" >> $outputFileInfo
+    #if [[ -f $infoFile ]]; then
+    #    echo "" >> $outputFileInfo
+    #    echo "" >> $outputFileInfo
+    #    echo "Processed Images:" >> $outputFileInfo
 
-        cat $infoFile >> $outputFileInfo
-    fi
+    #    cat $infoFile >> $outputFileInfo
+    #fi
 
     ## Añado marca al directorio de entrada para indicar que se ha procesado (.processed)
     if [[ ! -f "${workPath}/.processed" ]]; then
