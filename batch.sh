@@ -5,6 +5,17 @@ save_ifs=$IFS
 scriptPath=$(dirname $(realpath $0))
 galleryPath=$1
 outPath=$2
+interval=$3
+resolution=$4
+
+if [[ -z "${interval}" ]]; then
+    interval=8
+fi
+
+## Resolución del vídeo
+if [[ -z "${resolution}" ]]; then
+    resolution="3840x2160" # 4k por defecto
+fi
 
 if [[ -z "${galleryPath}" ]]; then
     echo 'Error: No se especificó el directorio de la galería.'
@@ -66,7 +77,7 @@ for dir in $galleryDirs; do
     echo ""
 
     ## Genero el video
-    "${scriptPath}/main.sh" -i=8 -p="${dir}" -o="${outPath}" -n="${dirName}" -f=60 -c=hevc_videotoolbox -q=20 -y
+    "${scriptPath}/main.sh" -i="${interval}" -p="${dir}" -o="${outPath}" -n="${dirName}" -r="${resolution}" -f=60 -c=hevc_videotoolbox -q=20 -y
 
     if [[ $? -ne 0 ]]; then
         ((errors++))
