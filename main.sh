@@ -31,7 +31,7 @@ resolution="3840x2160" # 4k por defecto
 codec="libx264" # libx265, hevc_videotoolbox, h264_videotoolbox
 
 ## Calidad (Varía según el codec)
-quality=31
+quality=18
 
 ## Ruta de las imágenes
 workPath="${scriptPath}/example"
@@ -43,7 +43,10 @@ outPath=""
 outputName="out"
 
 ## Frames por segundo
-fps=25
+fps=60
+
+## Threads
+threads=0
 
 ## Parámetros de denoise (Suavizar vídeo)
 #denoiseParameters="nlmeans=h=6:range=3:temporal=1"
@@ -85,6 +88,8 @@ for param in "$@"; do
         resolution="${value}"
     elif [[ $order = "-c" ]]; then
         codec="${value}"
+    elif [[ $order = "-t" ]]; then
+        threads="${value}"
     elif [[ $order = "-p" ]]; then
         if [[ ! -d "${value}" ]]; then
             echo "Error: Images Path not found ($value)"
@@ -275,15 +280,22 @@ fi
 
 ## Creo el vídeo
 if [[ ! -z $musicFile ]] && [[ -f $musicFile ]]; then
-    if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]]; then
-        ffmpeg ${allInputs} -c:v $codec -preset slow -profile:v main -crf $quality -bf:v 3 -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+
+    echo ""
+    echo "Música ${musicFile}"
+    echo ""
+
+    if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]] || [[ "${codec}" = hevc_v4l2m2m ]]; then
+        #ffmpeg ${allInputs} -c:v $codec -preset slow -profile:v main -crf $quality -bf:v 3 -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+        ffmpeg ${allInputs} -c:v $codec -crf $quality -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
     else
-        ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+        #ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
+        ffmpeg ${allInputs} -threads $threads -c:v $codec -crf $quality -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
     fi
 
     #ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -c:a aac -b:a 224k -filter_complex "${transitions}${concat}" -map "[v]" -map ${counter}:a -r $fps -t $totalLength "${tmp}/out.mp4"
 else
-    if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]]; then
+    if [[ "${codec}" = libx265 ]] || [[ "${codec}" = hevc_videotoolbox ]] || [[ "${codec}" = hevc_v4l2m2m ]]; then
         ffmpeg ${allInputs} -c:v $codec -x265-params "keyint=1:lossless=1" -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps -t $totalLength "${tmp}/out.mp4"
     else
         ffmpeg ${allInputs} -c:v $codec -crf $quality -profile:v high -preset slow -filter_complex "${transitions}${concat}" -map "[v]" -r $fps -t $totalLength "${tmp}/out.mp4"

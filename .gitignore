@@ -55,3 +55,4 @@ zsdoc/data
 /example/out
 /tmp
 .processed
+/.env

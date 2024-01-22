@@ -46,6 +46,7 @@ function printMenuHelp() {
     echo "  -f=<fps>            Frames per second (Default 60)"
     echo "  -c=<codec>          Codec (Default libx264)"
     echo "  -q=<quality>        Calidad para el codec"
+    echo "  -t=<threads>        Hilos a usar, por defecto 0 (Óptimo automáticamente)"
     echo "  -y                  Overwrite output video if exists"
     echo "  -h                  Show this help"
     echo ""
